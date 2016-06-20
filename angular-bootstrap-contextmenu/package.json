@@ -1,0 +1,83 @@
+{
+  "_args": [
+    [
+      "angular-bootstrap-contextmenu",
+      "/home/oussama"
+    ]
+  ],
+  "_from": "angular-bootstrap-contextmenu@latest",
+  "_id": "angular-bootstrap-contextmenu@0.9.7",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/angular-bootstrap-contextmenu",
+  "_nodeVersion": "0.12.2",
+  "_npmOperationalInternal": {
+    "host": "packages-16-east.internal.npmjs.com",
+    "tmp": "tmp/angular-bootstrap-contextmenu-0.9.7.tgz_1461034953339_0.24439619155600667"
+  },
+  "_npmUser": {
+    "email": "admin@templarian.com",
+    "name": "templarian"
+  },
+  "_npmVersion": "3.3.10",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "angular-bootstrap-contextmenu",
+    "raw": "angular-bootstrap-contextmenu",
+    "rawSpec": "",
+    "scope": null,
+    "spec": "latest",
+    "type": "tag"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "https://registry.npmjs.org/angular-bootstrap-contextmenu/-/angular-bootstrap-contextmenu-0.9.7.tgz",
+  "_shasum": "dfa047cba6733d912c8c324b107f207e459469a4",
+  "_shrinkwrap": null,
+  "_spec": "angular-bootstrap-contextmenu",
+  "_where": "/home/oussama",
+  "author": {
+    "name": "Austin Andrews"
+  },
+  "bugs": {
+    "url": "https://github.com/Templarian/ui.bootstrap.contextMenu/issues"
+  },
+  "dependencies": {},
+  "description": "Angular Bootstrap Context Menu",
+  "devDependencies": {},
+  "directories": {},
+  "dist": {
+    "shasum": "dfa047cba6733d912c8c324b107f207e459469a4",
+    "tarball": "https://registry.npmjs.org/angular-bootstrap-contextmenu/-/angular-bootstrap-contextmenu-0.9.7.tgz"
+  },
+  "gitHead": "483dc4679c1906d0499eeb4ddddce9036e8f36b7",
+  "homepage": "https://github.com/Templarian/ui.bootstrap.contextMenu#readme",
+  "keywords": [
+    "angular",
+    "angularjs",
+    "bootstrap",
+    "context",
+    "menu",
+    "contextmenu"
+  ],
+  "license": "MIT",
+  "main": "contextMenu.js",
+  "maintainers": [
+    {
+      "email": "admin@templarian.com",
+      "name": "templarian"
+    }
+  ],
+  "name": "angular-bootstrap-contextmenu",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Templarian/ui.bootstrap.contextMenu.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "0.9.7"
+}
