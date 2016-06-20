@@ -215,7 +215,29 @@ router.post('/remplireEmodule',function(req,res){
                function(eModuleId,eModuleCreatedBy,eModuleSendTo,userId,callback){
                    //update notif of owner
                    //notif others
-                   callback(null,null);
+                   async.each(
+                           eModuleSendTo,
+                           function(element,callback){
+                               databaseModels.profs.findById(element.id,function(err,prof){
+                               if(!err&&prof){
+                                   prof.addNotif({
+                                       eModule : req.body.eModuleId,
+                                       prof : userId,
+                                       permision : element.permision,
+                                       status : "unseen",
+                                       date : new Date() 
+                                   });
+                                   prof.save(function(err){
+                                       callback(null);
+                                   });
+                               }else{
+                                   callback(null)
+                               }
+                               });
+                           },
+                           function(err){
+                               callback(err,null);
+                           })
                }
            ],
            function(err,data){

@@ -122,6 +122,10 @@ var moduleSchema = mongoose.Schema(
                         type : mongoose.Schema.Types.ObjectId,
                         ref : 'eModules'
                     },
+                    prof : {
+                        type : mongoose.Schema.Types.ObjectId,
+                        ref : 'prof'
+                    },
                     status : String,
                     //type : String,
                     date : { type: Date, default: Date.now },
@@ -168,6 +172,7 @@ profSchema.methods.addNotif = function(notif){
                  note : {type : Number ,min:0 ,max:20}
              }
          ],
+        
      }
  )
  

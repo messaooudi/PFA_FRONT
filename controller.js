@@ -63,11 +63,12 @@ app.service('profService',function($http){
 
 
 
-app.service('eModulesList',function(eModuleService){
+app.service('eModulesList',function(eModuleService,$rootScope){
     var items = []
     var selectedItemIndex =  -1;
     var load = function(){
-               return eModuleService.load({fields : '',
+               return eModuleService.load({searchQuery : {createdBy : $rootScope.userId /*,'sendTo.id' :{ $in : [$rootScope.userId]}*/},
+                                    responseFields : '',
                                     populate : [{path : 'createdBy',select : 'nom'},{path : 'updatedBy',select : 'nom'}]})
                       .then(function successCallback(response){
                                items = response.data.data;
@@ -99,7 +100,10 @@ app.service('eModulesList',function(eModuleService){
 });
 
 app.service('profsList',function(profService){
-    var items = [{id : '57661a48f9fa1f87bed667da',nom : "Oussama"},{id : '57677729385118cd7efd33a2',nom : "Kotb"}]
+    var items = [{id : '57661a48f9fa1f87bed667da',nom : "Oussama"},
+                 {id : '57677729385118cd7efd33a2',nom : "Kotb"},
+                 {id : '5767fbc190d865945c11f0e9',nom : 'Yassir'}
+                ]
     var load = function(){
             return profService.getProfs({})
                     .then(function successCallback(response){
@@ -122,7 +126,7 @@ app.service('profsList',function(profService){
     }
 });
 
-app.controller('shareModalController',function($scope,eModuleService,profService,eModulesList,profsList){
+app.controller('shareModalController',function($scope,$rootScope,eModuleService,profService,eModulesList,profsList){
     $scope.profs = profsList.getItems();
     $scope.share = {
             req : {
@@ -135,13 +139,13 @@ app.controller('shareModalController',function($scope,eModuleService,profService
                 $('.selectpicker').selectpicker('deselectAll');
                 $('.selectpicker').selectpicker('refresh')
 
-                $scope.share.req.userId = $scope.profs[0]._id;
+                $scope.share.req.userId = $rootScope.userId;
                 $scope.share.req.eModuleId = eModulesList.getItems()[eModulesList.getSelectedItemIndex()]._id;
                 $scope.share.sharedWith = '';
                 $scope.share.req.sendTo = [];
                 
                 
-                var req = {userId : $scope.profs[0]._id,
+                var req = {userId : $rootScope.userId,
                           searchQuery : {_id : eModulesList.getItems()[eModulesList.getSelectedItemIndex()]._id},
                           responseFields : "sendTo.id",
                           populate : [{path : 'sendTo.id',select : 'nom'}]};
@@ -188,6 +192,7 @@ app.controller('editeModalController',function($scope,$rootScope,eModuleService,
     $scope.edite = {
             req : {
                 userId : '',
+                updatedBy : '',
                 eModuleId : '',
                 intitulee : '',
                 prerequis : '',
@@ -211,7 +216,8 @@ app.controller('editeModalController',function($scope,$rootScope,eModuleService,
 
               var tmpEModule = eModulesList.getItems()[eModulesList.getSelectedItemIndex()];
               
-              $scope.edite.req.userId = profsList.getItems()[0].id;
+              $scope.edite.req.userId = $rootScope.userId;
+              $scope.edite.req.updatedBy = $rootScope.userId;
               $scope.edite.req.eModuleId = tmpEModule._id;
               $scope.edite.req.intitulee = tmpEModule.intitulee;
               $scope.edite.req.prerequis = tmpEModule.prerequis;
@@ -282,7 +288,7 @@ app.controller('creeModalController',function($scope,$rootScope,eModuleService,p
                 $('.selectpicker').selectpicker('deselectAll');
                 $('.selectpicker').selectpicker('refresh');
                 
-                $scope.cree.req.userId = profsList.getItems()[0].id
+                $scope.cree.req.userId = $rootScope.userId
                 $scope.cree.validation.WTaken = false;
                 $scope.cree.validation.taken = false;
                 $scope.cree.req.intitulee = '';
@@ -319,7 +325,7 @@ app.controller('deleteModalController',function($scope,$rootScope,eModuleService
      $scope.delete = {
             delete : function(){
                 var id = eModulesList.getItems()[eModulesList.getSelectedItemIndex()]._id;
-                var userId = profsList.getItems()[0].id;
+                var userId = $rootScope.userId;
                 eModuleService.delete({eModuleId : id,userId : userId})
                                .then(function successCallback(response){
                                         if(response.data.code == '200'){
@@ -402,8 +408,9 @@ app.controller('headerController',function($scope,$rootScope,eModuleService,prof
             $rootScope.$broadcast('updateSearch',$scope.search);
         }
 });
-app.controller('gestionFilierController',function($scope,eModuleService,profService,eModulesList,profsList){
-        
+app.controller('gestionFilierController',function($scope,$rootScope,eModuleService,profService,eModulesList,profsList){
+       
+        $rootScope.userId = profsList.getItems()[0].id;
         $scope.selectedItemIndex = eModulesList.getSelectedItemIndex;
         $scope.eModulesList = eModulesList.getItems;        
 });
