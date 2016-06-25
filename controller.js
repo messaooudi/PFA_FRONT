@@ -63,15 +63,26 @@ app.service('profService',function($http){
 
 
 
-app.service('eModulesList',function(eModuleService,$rootScope){
+app.service('eModulesList',function(eModuleService,$rootScope,$filter){
     var items = []
     var selectedItemIndex =  -1;
     var load = function(){
-               return eModuleService.load({searchQuery : {createdBy : $rootScope.userId /*,'sendTo.id' :{ $in : [$rootScope.userId]}*/},
+               items = [];
+              return  eModuleService.load({searchQuery : {/*createdBy : $rootScope.userId ,*/'sendTo._id' :{ $in : [$rootScope.userId]}},
                                     responseFields : '',
-                                    populate : [{path : 'createdBy',select : 'nom'},{path : 'updatedBy',select : 'nom'}]})
+                                    populate : [{path : 'createdBy',select : 'nom'},{path : 'updatedBy',select : 'nom'},{path : 'sendTo._id',select : 'nom'}]})
                       .then(function successCallback(response){
-                               items = response.data.data;
+                               items = items.concat(response.data.data);
+                              return eModuleService.load({searchQuery : {createdBy : $rootScope.userId },
+                                    responseFields : '',
+                                    populate : [{path : 'createdBy',select : 'nom'},{path : 'updatedBy',select : 'nom'},{path : 'sendTo._id',select : 'nom'}]})
+                                .then(function successCallback(response){
+                                        items = $filter('orderBy')(items.concat(response.data.data),'-lastUpdate');
+                                        },
+                                        function errorCallback(response) {
+                                            
+                                        }
+                                );
                             },
                             function errorCallback(response) {
                                 
@@ -99,15 +110,13 @@ app.service('eModulesList',function(eModuleService,$rootScope){
     
 });
 
-app.service('profsList',function(profService){
-    var items = [{id : '57661a48f9fa1f87bed667da',nom : "Oussama"},
-                 {id : '57677729385118cd7efd33a2',nom : "Kotb"},
-                 {id : '5767fbc190d865945c11f0e9',nom : 'Yassir'}
-                ]
+app.service('profsList',function(profService,$rootScope){
+    var items = []
+                
     var load = function(){
-            return profService.getProfs({})
+            return profService.getProfs({responseFields : 'nom'})
                     .then(function successCallback(response){
-                                 this.items = response.data.data;
+                                 items = response.data.data;
                             },
                             function errorCallback(response) {
                                 
@@ -136,34 +145,21 @@ app.controller('shareModalController',function($scope,$rootScope,eModuleService,
             },
             sharedWith : '',
             init : function(){
-                $('.selectpicker').selectpicker('deselectAll');
+                var eModule = eModulesList.getItems()[eModulesList.getSelectedItemIndex()];
+                //('.selectpicker').selectpicker('deselectAll');
                 $('.selectpicker').selectpicker('refresh')
 
                 $scope.share.req.userId = $rootScope.userId;
-                $scope.share.req.eModuleId = eModulesList.getItems()[eModulesList.getSelectedItemIndex()]._id;
-                $scope.share.sharedWith = '';
+                $scope.share.req.eModuleId = eModule._id;
                 $scope.share.req.sendTo = [];
+               
+                if(eModule.sendTo.length > 0)
+                    $scope.share.sharedWith = 'Partgé avec :'
+                for(var i=0 ; i<eModule.sendTo.length ; i++){
+                         $scope.share.sharedWith = $scope.share.sharedWith.concat(' '+eModule.sendTo[i]._id.nom+',');
+                }
+                $scope.share.sharedWith = $scope.share.sharedWith.slice(0,-1);
                 
-                
-                var req = {userId : $rootScope.userId,
-                          searchQuery : {_id : eModulesList.getItems()[eModulesList.getSelectedItemIndex()]._id},
-                          responseFields : "sendTo.id",
-                          populate : [{path : 'sendTo.id',select : 'nom'}]};
-                eModuleService.load(req)
-                              .then(function successCallback(response){
-                                        if(response.data.code == '200'){
-                                            if(response.data.data[0].sendTo.length>0)
-                                                $scope.share.sharedWith = "Partagé avec :"
-                                            for(var i=0 ; i<response.data.data[0].sendTo.length ; i++){
-                                               $scope.share.sharedWith = $scope.share.sharedWith.concat(' '+response.data.data[0].sendTo[i].id.nom+',');
-                                            }
-                                            $scope.share.sharedWith = $scope.share.sharedWith.slice(0,-1);
-                                        }else{
-                                        }
-                                    },
-                                    function errorCallback(response) {
-                                    }
-                              );
             },
             submit : function(){
                 eModuleService.share($scope.share.req)
@@ -212,9 +208,16 @@ app.controller('editeModalController',function($scope,$rootScope,eModuleService,
                  taken : false,
                  WTaken : false
             },
-            init : function(){
-
+            init : function(eModuleId){
               var tmpEModule = eModulesList.getItems()[eModulesList.getSelectedItemIndex()];
+              
+              if(eModuleId)
+                    for(var i=0 ; i<eModulesList.getItems().length ; i++){
+                        if(eModulesList.getItems()[i]._id == eModuleId){
+                            tmpEModule = eModulesList.getItems()[i];
+                            break;
+                        } 
+                    }  
               
               $scope.edite.req.userId = $rootScope.userId;
               $scope.edite.req.updatedBy = $rootScope.userId;
@@ -227,7 +230,7 @@ app.controller('editeModalController',function($scope,$rootScope,eModuleService,
               $scope.edite.req.description_programme = tmpEModule.description_programme;
               $scope.edite.req.modalitee_evaluation = tmpEModule.modalitee_evaluation;
               $scope.edite.req.note = tmpEModule.note;
-
+              
               
             },
             addActivite : function(){
@@ -254,6 +257,8 @@ app.controller('editeModalController',function($scope,$rootScope,eModuleService,
                                         }else if(response.data.code == "003"){
                                             $scope.edite.validation.taken = true;
                                             $('#editeModal').scrollTop(0)
+                                        }else {
+                                            $('#editeModal').modal('hide');
                                         }
                                     },
                                     function errorCallback(response) {
@@ -266,8 +271,8 @@ app.controller('editeModalController',function($scope,$rootScope,eModuleService,
             }
             
         }
-        $scope.$on('init_editeModal',function(){
-            $scope.edite.init();
+        $scope.$on('init_editeModal',function(event,id){
+            $scope.edite.init(id);
         })
 });
 
@@ -278,15 +283,14 @@ app.controller('creeModalController',function($scope,$rootScope,eModuleService,p
                 userId : '',
                 intitulee : '',
                 sendTo : [],
-                populate : []
             },
             validation : {
                  taken : false,
                  WTaken : false
             },
             init : function(){
-                $('.selectpicker').selectpicker('deselectAll');
-                $('.selectpicker').selectpicker('refresh');
+               //$('.selectpicker').selectpicker('deselectAll');
+               $('.selectpicker').selectpicker('refresh');
                 
                 $scope.cree.req.userId = $rootScope.userId
                 $scope.cree.validation.WTaken = false;
@@ -302,8 +306,10 @@ app.controller('creeModalController',function($scope,$rootScope,eModuleService,p
                                         if(response.data.code == '200'){
                                             $rootScope.$broadcast('updateTable',{});
                                             $('#creeModal').modal('hide');
-                                        }else{
+                                        }else if(response.data.code == '003'){
                                             $scope.cree.validation.taken = true;
+                                        }else {
+                                             $('#creeModal').modal('hide');
                                         }
                                     },
                                     function errorCallback(response) {
@@ -326,8 +332,11 @@ app.controller('deleteModalController',function($scope,$rootScope,eModuleService
             delete : function(){
                 var id = eModulesList.getItems()[eModulesList.getSelectedItemIndex()]._id;
                 var userId = $rootScope.userId;
-                eModuleService.delete({eModuleId : id,userId : userId})
+                var intitulee = eModulesList.getItems()[eModulesList.getSelectedItemIndex()].intitulee;
+                alert(JSON.stringify(userId))
+                eModuleService.delete({intitulee : intitulee,eModuleId : id,userId : userId})
                                .then(function successCallback(response){
+                                   alert(JSON.stringify(response.data))
                                         if(response.data.code == '200'){
                                          $rootScope.$broadcast('updateTable',{});
                                         }else{
@@ -351,7 +360,7 @@ app.controller('eModuleTableController',function($scope,$rootScope,eModuleServic
             init : function(){  
                 $scope.eModuleTable.selectedIndex = -1;
                 eModulesList.setSelectedItemIndex(-1);
-                $scope.eModuleTable.search = '',
+                $scope.eModuleTable.search = '';
                 eModulesList.load().then(function(){
                     $scope.eModuleTable.items = eModulesList.getItems();
                 });
@@ -395,6 +404,19 @@ app.controller('eModuleTableController',function($scope,$rootScope,eModuleServic
 })
 
 app.controller('headerController',function($scope,$rootScope,eModuleService,profService,eModulesList,profsList){
+        $scope.header = {
+            eModuleNotif : [],
+            init : function(){
+                profService.getProfs({searchQuery :{ _id : $rootScope.userId},responseFields : 'notification.eModuleNotif',populate : [{path : 'notification.eModuleNotif.eModule',select : 'intitulee'},{path : 'notification.eModuleNotif.prof',select : 'nom'}]})
+                    .then(function successCallback(response){
+                                 $scope.header.eModuleNotif = response.data.data[0].notification.eModuleNotif;
+                            },
+                            function errorCallback(response) {
+                                
+                            }
+                      );
+            }
+        }
         $scope.edite = function(){
             $rootScope.$broadcast('init_editeModal',{});
         }
@@ -407,12 +429,20 @@ app.controller('headerController',function($scope,$rootScope,eModuleService,prof
         $scope.reportChange = function(){
             $rootScope.$broadcast('updateSearch',$scope.search);
         }
+        $scope.notifClick = function(eModuleId){
+            $rootScope.$broadcast('init_editeModal',eModuleId);
+            $('#editeModal').modal('show');
+        }
 });
 app.controller('gestionFilierController',function($scope,$rootScope,eModuleService,profService,eModulesList,profsList){
-       
-        $rootScope.userId = profsList.getItems()[0].id;
+
+       // $rootScope.userId = '576ac0fcc9f346e1981e23dc'//profsList.getItems()[0].id;
         $scope.selectedItemIndex = eModulesList.getSelectedItemIndex;
-        $scope.eModulesList = eModulesList.getItems;        
+        $scope.eModulesList = eModulesList.getItems;
+        
+        profsList.load().then(function(){
+            $rootScope.userId = profsList.getItems()[0]._id
+        });        
 });
 
 

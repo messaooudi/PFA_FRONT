@@ -13,6 +13,7 @@ var router = express.Router();
 //{userId : id,searchQuery : {key : value},responseFields : "filed1 filed2 ..",populate : [{path : '',select:''}]}
 router.post("/getProf",function(req,res){
        res.setHeader('Content-Type', 'application/json');
+       console.log("#####")
        //connection a la base de donnée
        var db = mongoose.connection; 
        mongoose.connect('mongodb://localhost:27017/test');
@@ -37,9 +38,9 @@ router.post("/getProf",function(req,res){
                    //.populate('updatedBy')
                    //.populate({path : 'sendTo.id',select :'nom'})
                    query.exec(
-                   function(err,eModules){
-                       if(err) return callback({code : '002',message :"database problem!!"},null);
-                       callback(null,eModules);
+                   function(err,profs){
+                        if(err) return callback({code : '002',message :"database problem!!"},null);
+                        callback(null,profs);
                    });
                }
            ],

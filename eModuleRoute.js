@@ -5,9 +5,11 @@ var mongoose = require('mongoose');
 var databaseModels = require('./databaseModels')
 
 
-
-
 var router = express.Router();
+
+var errorMessage = function(code,message){
+    return {code : code,message : message}
+}
 
 //{intitulee : String,userId : _id,sendTo : [{id : _id,permision : "r|w"}]}
 router.post("/creeEmodule",function(req,res){
@@ -52,22 +54,27 @@ router.post("/creeEmodule",function(req,res){
                    async.each(
                            req.body.sendTo,
                            function(element,callback){
-                               databaseModels.profs.findById(element.id,function(err,prof){
-                               if(!err&&prof){
+                               databaseModels.profs.findById(element._id,function(err,prof){
+                               if(!prof) return callback(errorMessage('005',"Prof n'existe pas"));
+                               if(!err){
                                    prof.addNotif({
+                                       intitulee : '',
                                        eModule : eModuleId,
-                                       permision : element.permision,
+                                       prof : req.body.userId,
                                        status : "unseen",
+                                       typee : 'share',
                                        date : new Date() 
                                    });
                                    prof.save(function(err){
                                        callback(null);
                                    });
-                                 }
+                                }else{
+                                    return callback(errorMessage('002','database prob!'))
+                                }
                                });
                            },
                            function(err){
-                               callback(null,null);
+                               callback(err,null);
                            }) 
                }
            ],
@@ -120,19 +127,22 @@ router.post("/shareEmodule",function(req,res){
                    async.each(
                            req.body.sendTo,
                            function(element,callback){
-                               databaseModels.profs.findById(element.id,function(err,prof){
-                               if(!err&&prof){
+                               databaseModels.profs.findById(element._id,function(err,prof){
+                               if(!prof) return callback(errorMessage('005',"prof n'existe pas!"));
+                               if(!err){
                                    prof.addNotif({
+                                       intitulee :'',
                                        eModule : req.body.eModuleId,
-                                       permision : element.permision,
+                                       prof : req.body.userId,
                                        status : "unseen",
+                                       typee : 'share',
                                        date : new Date() 
                                    });
                                    prof.save(function(err){
                                        callback(null);
                                    });
                                }else{
-                                   callback(null)
+                                   callback(errorMessage('002','database Problem'))
                                }
                                });
                            },
@@ -215,18 +225,39 @@ router.post('/remplireEmodule',function(req,res){
                function(eModuleId,eModuleCreatedBy,eModuleSendTo,userId,callback){
                    //update notif of owner
                    //notif others
+                   if(eModuleCreatedBy != userId)
+                        databaseModels.profs.findById(eModuleCreatedBy,function(err,prof){
+                            if(!prof){}
+                            else if(err){}
+                            else{
+                                    prof.addNotif({
+                                            intitulee : '',
+                                            eModule : req.body.eModuleId,
+                                            prof : userId,
+                                            status : "unseen",
+                                            typee : "update",
+                                            date : new Date() 
+                                        });
+                                        prof.save(function(err){
+                                            
+                                        });
+                            }
+                        })
                    async.each(
                            eModuleSendTo,
                            function(element,callback){
                                databaseModels.profs.findById(element.id,function(err,prof){
                                if(!err&&prof){
-                                   prof.addNotif({
-                                       eModule : req.body.eModuleId,
-                                       prof : userId,
-                                       permision : element.permision,
-                                       status : "unseen",
-                                       date : new Date() 
-                                   });
+                                   console.log("####"+userId+"::::"+prof._id+"####")
+                                   if(prof._id != userId)
+                                        prof.addNotif({
+                                            intitulee : '',
+                                            eModule : req.body.eModuleId,
+                                            prof : userId,
+                                            status : "unseen",
+                                            typee : "update",
+                                            date : new Date() 
+                                        });
                                    prof.save(function(err){
                                        callback(null);
                                    });
@@ -259,7 +290,7 @@ router.post('/remplireEmodule',function(req,res){
 
 
 
-//{eModuleId : _Id ,userId : _Id}
+//{eModuleId : _Id ,userId : _Id,sendTo : []}
 router.post("/deleteEmodule",function(req,res){
        res.setHeader('Content-Type', 'application/json');
        //connection a la base de donnée
@@ -283,10 +314,18 @@ router.post("/deleteEmodule",function(req,res){
                        async.each(
                            eModule.sendTo,
                            function(element,callback){
-                               databaseModels.profs.findById(element.id,function(err,prof){
-                               if(err) return callback(err);
-                               if(!prof) return callback(err)
+                               databaseModels.profs.findById(element._id,function(err,prof){
+                               if(err) return callback(errorMessage('002','database Problem'));
+                               if(!prof) return callback(errorMessage('005',"prof doesn't existe : "+element.id))
                                    prof.deleteEModule(req.body.eModuleId);
+                                    prof.addNotif({
+                                       intitulee : req.body.intitulee,
+                                       eModule : req.body.eModuleId,
+                                       prof : req.body.userId,
+                                       status : "unseen",
+                                       typee : "delete",
+                                       date : new Date() 
+                                   });
                                    prof.save(function(err){
                                        if(err) return callback(err)
                                        callback(null);
@@ -346,13 +385,14 @@ router.post("/getEmodule",function(req,res){
                    if(req.body.populate)
                    for(var i = 0 ; i<req.body.populate.length ; i++){
                        query.populate(req.body.populate[i]);
+                       console.log(JSON.stringify(req.body.populate[i]))
                    }
                    //.populate('updatedBy')
                    //.populate({path : 'sendTo.id',select :'nom'})
                    query.exec(
                    function(err,eModules){
                        if(err) return callback({code : '002',message :"database problem!!"},null);
-                       callback(null,eModules);
+                        callback(null,eModules);
                    });
                }
            ],

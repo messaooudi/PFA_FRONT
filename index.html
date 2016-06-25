@@ -38,22 +38,17 @@
     </style>
   </head>
   <body ng-app="app" ng-controller="gestionFilierController">
+  <div class="container-fluid">  
     <!--Header-->
-   
-
-    <div ng-include  src= "'header.html'"></div>   
-    
+    <div ng-include  src= "'header.html'"></div>  
     <!-- EModules TAble-->
     <div ng-include  src= "'eModuleTable.html'"></div>
-  
-
     <!--CRUD Modals-->
     <div ng-include  src= "'creeModal.html'"></div>
     <div ng-include  src= "'deleteModal.html'"></div>
     <div ng-include  src= "'shareModal.html'"></div>
     <div ng-include  src= "'editeModal.html'"></div>
- 
- 
+  </div>
     <script src="CDN/jquery/jquery.min.js"></script>
     <script src="CDN/bootstrap/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>

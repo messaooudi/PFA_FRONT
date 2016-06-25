@@ -32,7 +32,7 @@ var eModuleSchema = mongoose.Schema(
                             ref : 'prof'
                            },
                     sendTo : [{
-                            id : {
+                            _id : {
                             type: mongoose.Schema.Types.ObjectId,
                             ref : 'prof'
                             },
@@ -51,7 +51,8 @@ eModuleSchema.methods.appendSendTo = function(users){
     var tmp = [];
     for(var i=0 ;i<users.length ; i++){
         for(var j=0 ; j<this.sendTo.length ; j++){
-            if(this.sendTo[j]&&this.sendTo[j].id == users[i].id ){
+            console.log(this.sendTo[j]._id)
+            if(this.sendTo[j]&&this.sendTo[j]._id == users[i].id ){
             break;
             }
         }
@@ -116,8 +117,9 @@ var moduleSchema = mongoose.Schema(
          email : String,
          password : String,
          notification : {
-            eModuleNotif : [
+                eModuleNotif : [
                 {
+                    intitulee : String,
                     eModule : {
                         type : mongoose.Schema.Types.ObjectId,
                         ref : 'eModules'
@@ -127,7 +129,7 @@ var moduleSchema = mongoose.Schema(
                         ref : 'prof'
                     },
                     status : String,
-                    //type : String,
+                    typee : String,
                     date : { type: Date, default: Date.now },
                 }
             ]
