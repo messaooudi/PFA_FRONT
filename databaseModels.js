@@ -108,17 +108,7 @@ var moduleSchema = mongoose.Schema(
                  }
     );
  
- var profSchema = mongoose.Schema(
-     {
-         nom : String,
-         prenom : String,
-         tel : String,
-         grade : String,
-         email : String,
-         password : String,
-         notification : {
-                eModuleNotif : [
-                {
+ var eModuleNotifSchema = mongoose.Schema({
                     intitulee : String,
                     eModule : {
                         type : mongoose.Schema.Types.ObjectId,
@@ -131,6 +121,27 @@ var moduleSchema = mongoose.Schema(
                     status : String,
                     typee : String,
                     date : { type: Date, default: Date.now },
+ });
+ 
+ eModuleNotifSchema.methods.setAtt = function(att,value){
+    if(value){
+        this[att] = value;
+    }
+}
+ 
+ var profSchema = mongoose.Schema(
+     {
+         nom : String,
+         prenom : String,
+         tel : String,
+         grade : String,
+         email : String,
+         password : String,
+         notification : {
+                eModuleNotif : [
+                {
+                   type : mongoose.Schema.Types.ObjectId,
+                   ref : 'eModuleNotif'
                 }
             ]
         }
@@ -186,5 +197,6 @@ profSchema.methods.addNotif = function(notif){
      modules : mongoose.model('modules',moduleSchema),
      profs : mongoose.model('prof',profSchema),
      matiers : mongoose.model('matier',matierSchema),
+     eModuleNotif : mongoose.model('eModuleNotif',eModuleNotifSchema)
  }
               

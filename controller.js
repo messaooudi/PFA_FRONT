@@ -3,10 +3,9 @@
 var serverip = 'localhost'
 var app = angular.module('app',['ui.bootstrap.contextMenu']);
 
-app.run(function($rootScope){
-    $rootScope.selectedEModuleId = -1;
-    $rootScope.eModuleCreated = -1;
-    $rootScope.eModuleDeleted = -1;
+app.run(function($rootScope,eModulesList,profsList){
+    
+   // eModulesList.load()
 });
 
 app.service('eModuleService',function($http){
@@ -61,13 +60,54 @@ app.service('profService',function($http){
     }
 });
 
+app.service('eModuleNotifService',function($http){
+    this.getNotif = function(req){
+            return $http({
+                        method: 'POST',
+                        url: 'http://'+serverip+'/gestionfiliere/eModules/getNotif',
+                        data : req
+                    })
+    }
+    
+    this.updateNotif = function(req){
+            return $http({
+                        method: 'POST',
+                        url: 'http://'+serverip+'/gestionfiliere/eModules/updateNotif',
+                        data : req
+                    })
+    }
+});
+
+app.service('notifList',function($rootScope,eModuleNotifService){
+    var items = [];
+    
+    var load = function(notifIds){
+        return eModuleNotifService.getNotif({searchQuery : {_id : {$in : notifIds}},populate : [{path : 'eModule',select : 'intitulee'},{path : 'prof',select : 'nom'}]})
+                                    .then(function successCallback(response){
+                                       items = response.data.data;
+                                       $rootScope.$broadcast('notifsListUpdate',{})
+                                    },function errorCallback(respnse){
+                                        
+                                    });
+    };
+    
+    var getItems = function(){
+        return items;
+    }
+    
+    return {
+        load : load,
+        getItems : getItems
+    }
+})
 
 
 app.service('eModulesList',function(eModuleService,$rootScope,$filter){
     var items = []
     var selectedItemIndex =  -1;
+    
     var load = function(){
-               items = [];
+              items = [];
               return  eModuleService.load({searchQuery : {/*createdBy : $rootScope.userId ,*/'sendTo._id' :{ $in : [$rootScope.userId]}},
                                     responseFields : '',
                                     populate : [{path : 'createdBy',select : 'nom'},{path : 'updatedBy',select : 'nom'},{path : 'sendTo._id',select : 'nom'}]})
@@ -78,6 +118,7 @@ app.service('eModulesList',function(eModuleService,$rootScope,$filter){
                                     populate : [{path : 'createdBy',select : 'nom'},{path : 'updatedBy',select : 'nom'},{path : 'sendTo._id',select : 'nom'}]})
                                 .then(function successCallback(response){
                                         items = $filter('orderBy')(items.concat(response.data.data),'-lastUpdate');
+                                        $rootScope.$broadcast('eModulesListUpdate',{});
                                         },
                                         function errorCallback(response) {
                                             
@@ -110,13 +151,15 @@ app.service('eModulesList',function(eModuleService,$rootScope,$filter){
     
 });
 
+
 app.service('profsList',function(profService,$rootScope){
-    var items = []
+    var items = [];
                 
     var load = function(){
-            return profService.getProfs({responseFields : 'nom'})
+            return profService.getProfs({searchQuery : {_id : { $ne : $rootScope.userId}},responseFields : 'nom'})
                     .then(function successCallback(response){
                                  items = response.data.data;
+                                 $rootScope.$broadcast('profsListUpdate',{});
                             },
                             function errorCallback(response) {
                                 
@@ -124,21 +167,23 @@ app.service('profsList',function(profService,$rootScope){
                       );
 
                 
-            }
+            };
     var getItems = function(){
         return items;
-    }
+    };
     
     return {
         load : load,
         getItems : getItems
-    }
+    };
 });
 
 app.controller('shareModalController',function($scope,$rootScope,eModuleService,profService,eModulesList,profsList){
     $scope.profs = profsList.getItems();
+    
     $scope.share = {
             req : {
+                intitulee : '',
                 userId : '',
                 eModuleId : '',
                 sendTo : []
@@ -148,7 +193,7 @@ app.controller('shareModalController',function($scope,$rootScope,eModuleService,
                 var eModule = eModulesList.getItems()[eModulesList.getSelectedItemIndex()];
                 //('.selectpicker').selectpicker('deselectAll');
                 $('.selectpicker').selectpicker('refresh')
-
+                $scope.share.req.intitulee = eModule.intitulee;
                 $scope.share.req.userId = $rootScope.userId;
                 $scope.share.req.eModuleId = eModule._id;
                 $scope.share.req.sendTo = [];
@@ -178,6 +223,11 @@ app.controller('shareModalController',function($scope,$rootScope,eModuleService,
             }
             
         }
+        
+        $scope.$on('profsListUpdate',function(){
+            $scope.profs = profsList.getItems();
+        })
+        
         $scope.$on('init_shareModal',function(){
             $scope.share.init();
         })
@@ -321,6 +371,11 @@ app.controller('creeModalController',function($scope,$rootScope,eModuleService,p
 
             }
         }
+        
+        $rootScope.$on('profsListUpdate',function(){
+            $scope.profs = profsList.getItems();
+        })
+        
         $scope.$on('init_creeModal',function(){
             $scope.cree.init();
         })
@@ -333,10 +388,8 @@ app.controller('deleteModalController',function($scope,$rootScope,eModuleService
                 var id = eModulesList.getItems()[eModulesList.getSelectedItemIndex()]._id;
                 var userId = $rootScope.userId;
                 var intitulee = eModulesList.getItems()[eModulesList.getSelectedItemIndex()].intitulee;
-                alert(JSON.stringify(userId))
                 eModuleService.delete({intitulee : intitulee,eModuleId : id,userId : userId})
                                .then(function successCallback(response){
-                                   alert(JSON.stringify(response.data))
                                         if(response.data.code == '200'){
                                          $rootScope.$broadcast('updateTable',{});
                                         }else{
@@ -361,9 +414,8 @@ app.controller('eModuleTableController',function($scope,$rootScope,eModuleServic
                 $scope.eModuleTable.selectedIndex = -1;
                 eModulesList.setSelectedItemIndex(-1);
                 $scope.eModuleTable.search = '';
-                eModulesList.load().then(function(){
-                    $scope.eModuleTable.items = eModulesList.getItems();
-                });
+                eModulesList.load();
+                //$scope.eModuleTable.items = eModulesList.getItems();
             },
             menuOptions : [
                 ['Apercu', function($itemScope){
@@ -395,6 +447,11 @@ app.controller('eModuleTableController',function($scope,$rootScope,eModuleServic
             }
         }
        
+        $scope.$on('eModulesListUpdate',function(){
+             $scope.eModuleTable.items = eModulesList.getItems();
+        })
+        
+       
         $scope.$on('updateTable',function(){
             $scope.eModuleTable.init();
         })  
@@ -403,13 +460,21 @@ app.controller('eModuleTableController',function($scope,$rootScope,eModuleServic
         })  
 })
 
-app.controller('headerController',function($scope,$rootScope,eModuleService,profService,eModulesList,profsList){
+app.controller('headerController',function($scope,$rootScope,notifList,profService,eModuleNotifService){
         $scope.header = {
             eModuleNotif : [],
+            newNotifCount : 0,
             init : function(){
-                profService.getProfs({searchQuery :{ _id : $rootScope.userId},responseFields : 'notification.eModuleNotif',populate : [{path : 'notification.eModuleNotif.eModule',select : 'intitulee'},{path : 'notification.eModuleNotif.prof',select : 'nom'}]})
+                   profService.getProfs({searchQuery :{ _id : $rootScope.userId},responseFields : 'notification.eModuleNotif'})
                     .then(function successCallback(response){
-                                 $scope.header.eModuleNotif = response.data.data[0].notification.eModuleNotif;
+                                notifList.load(response.data.data[0].notification.eModuleNotif)
+                                   .then(function(){
+                                       $scope.header.eModuleNotif = notifList.getItems();
+                                       for(var i=0 ; i< $scope.header.eModuleNotif.length ; i++){
+                                           if($scope.header.eModuleNotif[i].status == 'unseen')
+                                                $scope.header.newNotifCount++;
+                                       }
+                                   })
                             },
                             function errorCallback(response) {
                                 
@@ -417,6 +482,11 @@ app.controller('headerController',function($scope,$rootScope,eModuleService,prof
                       );
             }
         }
+        
+        $rootScope.$on('notifsListUpdate',function(){
+            $scope.header.eModuleNotif = notifList.getItems();
+        })
+        
         $scope.edite = function(){
             $rootScope.$broadcast('init_editeModal',{});
         }
@@ -429,20 +499,26 @@ app.controller('headerController',function($scope,$rootScope,eModuleService,prof
         $scope.reportChange = function(){
             $rootScope.$broadcast('updateSearch',$scope.search);
         }
-        $scope.notifClick = function(eModuleId){
-            $rootScope.$broadcast('init_editeModal',eModuleId);
-            $('#editeModal').modal('show');
+        $scope.notifClick = function(notif){
+            if(notif.eModule){
+                $rootScope.$broadcast('init_editeModal',notif.eModule._id);
+                $('#editeModal').modal('show');
+            }
+            if(notif.status == 'unseen'){
+                notif.status == 'seen'
+                $scope.header.newNotifCount--;
+                eModuleNotifService.updateNotif({notifId : notif._id,status : 'seen'})
+                                   .then(function(){
+                })
+            }
         }
 });
 app.controller('gestionFilierController',function($scope,$rootScope,eModuleService,profService,eModulesList,profsList){
-
-       // $rootScope.userId = '576ac0fcc9f346e1981e23dc'//profsList.getItems()[0].id;
         $scope.selectedItemIndex = eModulesList.getSelectedItemIndex;
         $scope.eModulesList = eModulesList.getItems;
-        
-        profsList.load().then(function(){
-            $rootScope.userId = profsList.getItems()[0]._id
-        });        
+        $rootScope.userId = '576f01b77bdb34164409a889'; //576f01b77bdb34164409a889 576f01bf7bdb34164409a88b
+        profsList.load();
+                
 });
 
 

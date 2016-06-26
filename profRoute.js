@@ -4,12 +4,12 @@ var async = require('async')
 var mongoose = require('mongoose');
 var databaseModels = require('./databaseModels')
 
-
+var cluster = require('express-cluster');
 
 
 var router = express.Router();
 
-
+cluster(function(worker){
 //{userId : id,searchQuery : {key : value},responseFields : "filed1 filed2 ..",populate : [{path : '',select:''}]}
 router.post("/getProf",function(req,res){
        res.setHeader('Content-Type', 'application/json');
@@ -58,6 +58,6 @@ router.post("/getProf",function(req,res){
            });
        });
 });
-
+},{count : 4});
 
 module.exports = router;
