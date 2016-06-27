@@ -11,7 +11,7 @@ app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
 
-var server = app.listen(80,"localhost");
+var server = app.listen(80,"192.168.1.19");
 
 var eModuleRouteHandler = require('./eModuleRoute');
 var profRouteHandler = require('./profRoute');

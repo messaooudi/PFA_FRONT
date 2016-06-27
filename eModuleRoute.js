@@ -48,7 +48,9 @@ router.post("/creeEmodule",function(req,res){
                                         sendTo : req.body.sendTo,
                                         creationDate : new Date(),
                                         lastUpdate : new Date(),
-                                        updatedBy : req.body.userId});
+                                        updatedBy : req.body.userId,
+                                        status : 'incomplet'
+                                        });
                       eModule.save(function(err){
                            if(err) return callback({code : '002',message :"database problem!"});
                           callback(null,eModule._id);
@@ -246,6 +248,7 @@ router.post('/remplireEmodule',function(req,res){
                    eModule.setAtt('note_minimal',req.body.note_minimal);                  
                    eModule.setAtt('lastUpdate',req.body.lastUpdate);                  
                    eModule.setAtt('updatedBy',req.body.updatedBy);                  
+                   eModule.setAtt('status',req.body.status);
                    
                    eModule.save(function(err){
                        if(err) return callback({code : '002',message:"database problem!"});

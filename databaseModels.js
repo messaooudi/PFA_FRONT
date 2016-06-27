@@ -44,6 +44,7 @@ var eModuleSchema = mongoose.Schema(
                             type: mongoose.Schema.Types.ObjectId,
                             ref : 'prof'
                            },
+                   status : String
                   }
               );
               

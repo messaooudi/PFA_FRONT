@@ -1,6 +1,6 @@
 
 /* global angular */
-var serverip = 'localhost'
+var serverip = '192.168.1.19'
 var app = angular.module('app',['ui.bootstrap.contextMenu']);
 
 app.run(function($rootScope,eModulesList,profsList){
@@ -210,6 +210,7 @@ app.controller('shareModalController',function($scope,$rootScope,eModuleService,
                 eModuleService.share($scope.share.req)
                               .then(function successCallback(response){
                                         if(response.data.code == '200'){
+                                            $rootScope.$broadcast('updateTable',{});
                                             $('#shareModal').modal('hide');
                                         }else{
                                         }
@@ -253,6 +254,7 @@ app.controller('editeModalController',function($scope,$rootScope,eModuleService,
                 description_programme : '', 
                 modalitee_evaluation : '',
                 note : '',
+                status : '',
             },
             validation : {
                  taken : false,
@@ -280,6 +282,7 @@ app.controller('editeModalController',function($scope,$rootScope,eModuleService,
               $scope.edite.req.description_programme = tmpEModule.description_programme;
               $scope.edite.req.modalitee_evaluation = tmpEModule.modalitee_evaluation;
               $scope.edite.req.note = tmpEModule.note;
+              $scope.edite.req.status = tmpEModule.status;
               
               
             },
@@ -390,7 +393,9 @@ app.controller('deleteModalController',function($scope,$rootScope,eModuleService
                 var intitulee = eModulesList.getItems()[eModulesList.getSelectedItemIndex()].intitulee;
                 eModuleService.delete({intitulee : intitulee,eModuleId : id,userId : userId})
                                .then(function successCallback(response){
+                                         alert(JSON.stringify(response))
                                         if(response.data.code == '200'){
+                                           
                                          $rootScope.$broadcast('updateTable',{});
                                         }else{
 
@@ -460,7 +465,7 @@ app.controller('eModuleTableController',function($scope,$rootScope,eModuleServic
         })  
 })
 
-app.controller('headerController',function($scope,$rootScope,notifList,profService,eModuleNotifService){
+app.controller('headerController',function($scope,$rootScope,notifList,profService,eModuleNotifService,eModulesList){
         $scope.header = {
             eModuleNotif : [],
             newNotifCount : 0,
@@ -481,6 +486,19 @@ app.controller('headerController',function($scope,$rootScope,notifList,profServi
                             }
                       );
             }
+        }
+        
+        $scope.getPermision = function(eModuleId){
+            for(var i=0 ; i<eModulesList.getItems().length ; i++){
+                if(eModulesList.getItems()[i]._id == eModuleId){
+                    for(var j = 0 ; j<eModulesList.getItems()[i].sendTo.length ; j++ ){
+                        if(eModulesList.getItems()[i].sendTo[j]._id._id == $rootScope.userId){
+                            return eModulesList.getItems()[i].sendTo[j].permision;
+                        }
+                    }
+                }
+            }
+            
         }
         
         $rootScope.$on('notifsListUpdate',function(){

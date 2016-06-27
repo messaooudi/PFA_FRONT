@@ -10,6 +10,18 @@
     <link href="CDN/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
     <style>
+        body{
+            padding-top: 55px;
+        }
+        
+        .tr_incomplet{
+            background: none repeat scroll 0 0 #EFEBD6!important;
+            color: black!important;
+        }
+        .tr_complet {
+            background: none repeat scroll 0 0 #DEE79C!important;
+            color: black!important;
+        }
         .tr_active {
             background: none repeat scroll 0 0 #4285f4!important;
             color: whitesmoke!important;
@@ -38,7 +50,7 @@
     </style>
   </head>
   <body ng-app="app" ng-controller="gestionFilierController">
-  <div class="container-fluid">  
+  <div class="">  
     <!--Header-->
     <div ng-include  src= "'header.html'"></div>  
     <!-- EModules TAble-->
@@ -48,6 +60,7 @@
     <div ng-include  src= "'deleteModal.html'"></div>
     <div ng-include  src= "'shareModal.html'"></div>
     <div ng-include  src= "'editeModal.html'"></div>
+    
   </div>
     <script src="CDN/jquery/jquery.min.js"></script>
     <script src="CDN/bootstrap/js/bootstrap.min.js"></script>

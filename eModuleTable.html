@@ -6,16 +6,14 @@
                     <th>Intitulée</th>
                     <th>Propriétaire</th>
                     <th>Dernière modification</th>
-                    <th></th>
                  </tr>
            </thead>
            <tbody>
-                 <tr ng-repeat="eModule in eModuleTable.items | filter : eModuleTable.search"  ng-class="{'tr_active' : eModuleTable.selectedIndex == $index}" ng-mousedown="eModuleTable.clicked($index,eModule._id,eModule.intitulee)" context-menu="eModuleTable.menuOptions"  ng-click="eModuleTable.clicked($index,eModule._id,eModule.intitulee)">
+                 <tr ng-repeat="eModule in eModuleTable.items | filter : eModuleTable.search" class="{{eModule.status =='complet'?'tr_complet':'tr_incomplet'}}" ng-class="{'tr_active' : eModuleTable.selectedIndex == $index}" ng-mousedown="eModuleTable.clicked($index,eModule._id,eModule.intitulee)" context-menu="eModuleTable.menuOptions"  ng-click="eModuleTable.clicked($index,eModule._id,eModule.intitulee)">
                     <td>{{$index}}</td>
                     <td>{{eModule.intitulee}}</td>
                     <td>{{eModule.createdBy.nom}}</td>
                     <td>{{eModule.lastUpdate}} <h6>{{eModule.updatedBy.nom}}</h6></td>
-                    <td><h1 ng-show=""></h1>notif</td>
                  </tr>
             </tbody>
        </table>   

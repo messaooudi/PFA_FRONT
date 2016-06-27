@@ -105,6 +105,7 @@
                                                         </h4>
                                                         <h4 ng-if='notif.typee == "share"'  >
                                                             {{notif.prof.nom}} a partager avec vous {{notif.intitulee}}
+                                                            <span class="glyphicon glyphicon-{{getPermision(notif.eModule._id)=='w'?'edit':'eye-open'}}" aria-hidden="true"></span>
                                                         </h4>
                                                         <h4 ng-if='notif.typee == "update"'>
                                                             {{notif.prof.nom}} a mis a jour {{notif.intitulee}}
