@@ -53,7 +53,7 @@ router.post("/creeEmodule",function(req,res){
                                         });
                       eModule.save(function(err){
                            if(err) return callback({code : '002',message :"database problem!"});
-                          callback(null,eModule._id);
+                           callback(null,eModule._id);
                       });
                },function(eModuleId,callback){
                    var newNotif = new databaseModels.eModuleNotif({
@@ -77,7 +77,7 @@ router.post("/creeEmodule",function(req,res){
                                if(!prof) return callback(errorMessage('005',"prof n'existe pas!"));
                                if(!err){
                                   if(prof._id != req.body.userId){
-                                     prof.addNotif(notifId);
+                                     prof.addNotif(notifId,'eModuleNotif');
                                      prof.save(function(err){
                                          //if(err) return callback(errorMessage('006','erreur add notif to prof'))
                                          callback(null);
@@ -164,7 +164,7 @@ router.post("/shareEmodule",function(req,res){
                                if(!prof) return callback(errorMessage('005',"prof n'existe pas!"));
                                if(!err){
                                   if(prof._id != req.body.userId){
-                                     prof.addNotif(notifId);
+                                     prof.addNotif(notifId,'eModuleNotif');
                                      prof.save(function(err){
                                          //if(err) return callback(errorMessage('006','erreur add notif to prof'))
                                          callback(null);
@@ -269,14 +269,6 @@ router.post('/remplireEmodule',function(req,res){
                                                              })
                    async.waterfall([
                        function(callback){
-                           var newNotif = new databaseModels.eModuleNotif({
-                                                                intitulee :req.body.intitulee,
-                                                                eModule : req.body.eModuleId,
-                                                                prof : userId,
-                                                                status : "unseen",
-                                                                typee : 'update',
-                                                                date : new Date() 
-                                                             })
                           newNotif.save(function(err){
                               if(err) return callback(errorMessage('008','prob saving notif'))
                               else{
@@ -290,7 +282,7 @@ router.post('/remplireEmodule',function(req,res){
                             if(!prof){callback(null,notifId)}
                             else if(err){callback(null,notifId)}
                             else{
-                                 prof.addNotif(notifId);
+                                 prof.addNotif(notifId,'eModuleNotif');
                                  prof.save(function(err){
                                     callback(null,notifId)
                                   })
@@ -307,7 +299,7 @@ router.post('/remplireEmodule',function(req,res){
                                databaseModels.profs.findById(element.id,function(err,prof){
                                if(!err&&prof){
                                    if(prof._id != userId){
-                                           prof.addNotif(notifId);
+                                           prof.addNotif(notifId,'eModuleNotif');
                                            prof.save(function(err){
                                                callback(null);
                                            })
@@ -321,9 +313,89 @@ router.post('/remplireEmodule',function(req,res){
                                });
                            },
                            function(err){
-                               callback(err,null);
+                               if(err) return callback(err,null);
+                               callback(null);
                            })
-                       }   
+                       },
+                       function(callback){
+                           databaseModels.modules.find({'eModules._id' : { $in : eModuleId}},'createdBy sendTo',function(err,modules){
+                               if(modules){
+                                   callback(null,modules)
+                               }else{
+                                   callback(null)
+                               }
+                           })
+                       },
+                       function(modules,callback){
+                           async.each(
+                           modules,
+                           function(module,callback){
+                                       var newNotif = new databaseModels.moduleNotif({
+                                                                intitulee :req.body.intitulee,
+                                                                module : module._id,
+                                                                eModule : eModuleId,
+                                                                prof : userId,
+                                                                status : "unseen",
+                                                                typee : 'eModuleUpdate',
+                                                                date : new Date() 
+                                                             })
+                                       var notifId = newNotif._id;
+                                       async.series([
+                                        function(callback){
+                                            newNotif.save(function(err){
+                                                if(err) return callback(errorMessage('008','prob saving notif'))
+                                                else{
+                                                    callback(null)
+                                                }
+                                            })
+                                        },
+                                        function(callback){
+                                            databaseModels.profs.findById(module.createdBy,function(err,prof){
+                                                if(!prof){callback(null)}
+                                                else if(err){callback(null)}
+                                                else{
+                                                    prof.addNotif(notifId,'moduleNotif');
+                                                    prof.save(function(err){
+                                                        callback(null)
+                                                    })
+                                                }
+                                            })
+                                        },
+                                        function(callback){
+                                            async.each(
+                                            module.sendTo,
+                                            function(element,callback){
+                                                databaseModels.profs.findById(element.id,function(err,prof){
+                                                if(!err&&prof){
+                                                    if(prof._id != userId){
+                                                            prof.addNotif(notifId,'eModuleNotif');
+                                                            prof.save(function(err){
+                                                                callback(null);
+                                                            })
+
+                                                    }else {
+                                                        callback(null);
+                                                    }
+                                                }else{
+                                                    callback(null)
+                                                }
+                                                });
+                                            },
+                                            function(err){
+                                                if(err) return callback(err,null);
+                                                callback(null);
+                                            })
+                                        }
+                                    ],
+                                    function(err,data){
+                                        callback(null)
+                                    })
+                           },
+                           function(err){
+                               if(err) return callback(err,null);
+                               callback(null);
+                           })
+                       }
                    ],function(err,data){
                        if(err) return callback(err)
                        callback(null,null);
@@ -397,7 +469,7 @@ router.post("/deleteEmodule",function(req,res){
                                databaseModels.profs.findById(element.id,function(err,prof){
                                if(!err&&prof){
                                    if(prof._id != req.body.userId){
-                                           prof.addNotif(notifId);
+                                           prof.addNotif(notifId,'eModuleNotif');
                                            prof.save(function(err){
                                                callback(null);
                                            })
@@ -448,12 +520,14 @@ router.post("/getEmodule",function(req,res){
        mongoose.connect('mongodb://localhost:27017/test');
        
        db.on('error',function(){
-                 console.log(JSON.stringify({code : '001',message :"connection to database faild"},null));
-                  mongoose.connection.close();   
-                 res.send(JSON.stringify({code : '001',message :"connection to database faild"}));
+                 console.log('33333')
+                 console.log(JSON.stringify({code : '001',message :"connection to database faild getRoute"},null));
+                 mongoose.connection.close();   
+                 //res.send(JSON.stringify({code : '001',message :"connection to database faild"}));
        });
        
        db.once('open',function(){
+           console.log('444444')
            console.log("connection to database ");
            console.log("response is : ");
            async.series([

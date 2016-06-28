@@ -11,13 +11,16 @@ app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
 
-var server = app.listen(80,"192.168.1.19");
+var server = app.listen(80,"localhost");
+
 
 var eModuleRouteHandler = require('./eModuleRoute');
+var moduleRouteHandler = require('./moduleRoute');
 var profRouteHandler = require('./profRoute');
 
 
 app.use('/gestionfiliere/eModules',eModuleRouteHandler);
+app.use('/gestionfiliere/modules',moduleRouteHandler);
 app.use('/gestionfiliere/profs',profRouteHandler);
 
 app.get("/*",function(req,res){ 

@@ -13,7 +13,7 @@ cluster(function(worker){
 //{userId : id,searchQuery : {key : value},responseFields : "filed1 filed2 ..",populate : [{path : '',select:''}]}
 router.post("/getProf",function(req,res){
        res.setHeader('Content-Type', 'application/json');
-       console.log("#####")
+       console.log("#####p")
        //connection a la base de donnée
        var db = mongoose.connection; 
        mongoose.connect('mongodb://localhost:27017/test');
@@ -25,6 +25,7 @@ router.post("/getProf",function(req,res){
        });
         
        db.once('open',function(){
+           console.log("#####p2")
            console.log("connection to database profs");
            console.log("response is : ");
            async.series([

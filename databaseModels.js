@@ -88,8 +88,11 @@ var moduleSchema = mongoose.Schema(
                     note_minimal : { type: Number, min: 0 , max : 10},
                     eModules : [
                            {
-                            type: mongoose.Schema.Types.ObjectId,
-                            ref : 'eModules'
+                              _id :  {
+                                    type: mongoose.Schema.Types.ObjectId,
+                                    ref : 'eModules'
+                                    },
+                              intitulee : String
                            }
                        ],
                     createdBy : {
@@ -105,12 +108,38 @@ var moduleSchema = mongoose.Schema(
                    updatedBy : {
                             type: mongoose.Schema.Types.ObjectId,
                             ref : 'prof'
-                           },                       
+                           },   
+                   status : String                    
                  }
     );
+    
+    moduleSchema.methods.setAtt = function(att,value){
+    if(value){
+        this[att] = value;
+    }
+}
  
  var eModuleNotifSchema = mongoose.Schema({
                     intitulee : String,
+                    eModule : {
+                        type : mongoose.Schema.Types.ObjectId,
+                        ref : 'eModules'
+                    },
+                    prof : {
+                        type : mongoose.Schema.Types.ObjectId,
+                        ref : 'prof'
+                    },
+                    status : String,
+                    typee : String,
+                    date : { type: Date, default: Date.now },
+ });
+ 
+ var moduleNotifSchema = mongoose.Schema({
+                    intitulee : String,
+                    module : {
+                        type : mongoose.Schema.Types.ObjectId,
+                        ref : 'modules'
+                    },
                     eModule : {
                         type : mongoose.Schema.Types.ObjectId,
                         ref : 'eModules'
@@ -144,7 +173,14 @@ var moduleSchema = mongoose.Schema(
                    type : mongoose.Schema.Types.ObjectId,
                    ref : 'eModuleNotif'
                 }
-            ]
+                ],
+                moduleNotif : [
+                {
+                   type : mongoose.Schema.Types.ObjectId,
+                   ref : 'moduleNotif'
+                }
+               ]
+                
         }
      }
  );
@@ -166,8 +202,8 @@ profSchema.methods.deleteEModule = function(eModuleId){
         }, this);
 }
 
-profSchema.methods.addNotif = function(notif){
-    this.notification.eModuleNotif.push(notif);
+profSchema.methods.addNotif = function(notif,notifType){
+    this.notification[notifType].push(notif);
 }
 
  var matierSchema = mongoose.Schema(
@@ -198,6 +234,7 @@ profSchema.methods.addNotif = function(notif){
      modules : mongoose.model('modules',moduleSchema),
      profs : mongoose.model('prof',profSchema),
      matiers : mongoose.model('matier',matierSchema),
-     eModuleNotif : mongoose.model('eModuleNotif',eModuleNotifSchema)
+     eModuleNotif : mongoose.model('eModuleNotif',eModuleNotifSchema),
+     moduleNotif : mongoose.model('moduleNotif',moduleNotifSchema)
  }
               
