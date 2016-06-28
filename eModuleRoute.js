@@ -247,7 +247,8 @@ router.post('/remplireEmodule',function(req,res){
                    eModule.setAtt('modalitee_evaluation',req.body.modalitee_evaluation);                  
                    eModule.setAtt('note_minimal',req.body.note_minimal);                  
                    eModule.setAtt('lastUpdate',req.body.lastUpdate);                  
-                   eModule.setAtt('updatedBy',req.body.updatedBy);                  
+                   eModule.setAtt('updatedBy',req.body.updatedBy); 
+                   eModule.setAtt('note',req.body.note);                 
                    eModule.setAtt('status',req.body.status);
                    
                    eModule.save(function(err){
@@ -318,7 +319,7 @@ router.post('/remplireEmodule',function(req,res){
                            })
                        },
                        function(callback){
-                           databaseModels.modules.find({'eModules._id' : { $in : eModuleId}},'createdBy sendTo',function(err,modules){
+                           databaseModels.modules.find({'eModules._id' : { $in : eModuleId}},'createdBy coordonnateur sendTo',function(err,modules){
                                if(modules){
                                    callback(null,modules)
                                }else{
@@ -354,10 +355,30 @@ router.post('/remplireEmodule',function(req,res){
                                                 if(!prof){callback(null)}
                                                 else if(err){callback(null)}
                                                 else{
+                                                  if(prof._id != userId){ 
                                                     prof.addNotif(notifId,'moduleNotif');
                                                     prof.save(function(err){
                                                         callback(null)
                                                     })
+                                                    }else {
+                                                        callback(null);
+                                                    }
+                                                }
+                                            })
+                                        },
+                                        function(callback){
+                                            databaseModels.profs.findById(module.coordonnateur,function(err,prof){
+                                                if(!prof){callback(null)}
+                                                else if(err){callback(null)}
+                                                else{
+                                                   if(prof._id != userId){ 
+                                                    prof.addNotif(notifId,'moduleNotif');
+                                                    prof.save(function(err){
+                                                        callback(null)
+                                                    })
+                                                   }else {
+                                                        callback(null);
+                                                    }
                                                 }
                                             })
                                         },
@@ -483,14 +504,14 @@ router.post("/deleteEmodule",function(req,res){
                                });
                            },
                            function(err){
-                               callback(null,null);
+                               callback(null);
                            })
                        } 
                ,
                function(callback){
                    databaseModels.eModules.remove({_id : req.body.eModuleId},function(err){
-                       if(err) return callback({code : '002',message :"database problem!!"},null);
-                       callback(null,null);
+                       if(err) return callback({code : '002',message :"database problem!!"});
+                       callback(null);
                    });
                }
            ],

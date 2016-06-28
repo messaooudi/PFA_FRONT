@@ -1,4 +1,4 @@
-<div ng-controller="eModuleTableController" class="table-responsive" ng-init="eModuleTable.init()">
+<div ng-controller="e_eModuleTableController" class="table-responsive" ng-init="eModuleTable.init()">
        <table class="table table-hover">
            <thead>
                 <tr>
@@ -9,7 +9,7 @@
                  </tr>
            </thead>
            <tbody>
-                 <tr ng-repeat="eModule in eModuleTable.items | filter : eModuleTable.search" class="{{eModule.status =='complet'?'tr_complet':'tr_incomplet'}}" ng-class="{'tr_active' : eModuleTable.selectedIndex == $index}" ng-mousedown="eModuleTable.clicked($index,eModule._id,eModule.intitulee)" context-menu="eModuleTable.menuOptions"  ng-click="eModuleTable.clicked($index,eModule._id,eModule.intitulee)">
+                 <tr ng-repeat="eModule in eModuleTable.items() | filter : eModuleTable.search" class="{{eModule.status =='complet'?'tr_complet':'tr_incomplet'}}" ng-class="{'tr_active' : eModuleTable.selectedIndex == $index}" ng-mousedown="eModuleTable.clicked($index,eModule._id,eModule.intitulee)" context-menu="eModuleTable.menuOptions"  ng-click="eModuleTable.clicked($index,eModule._id,eModule.intitulee)">
                     <td>{{$index}}</td>
                     <td>{{eModule.intitulee}}</td>
                     <td>{{eModule.createdBy.nom}}</td>

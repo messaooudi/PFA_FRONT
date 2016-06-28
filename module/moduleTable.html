@@ -1,4 +1,4 @@
-<div ng-controller="moduleTableController" class="table-responsive" ng-init="moduleTable.init()">
+<div ng-controller="m_moduleTableController" class="table-responsive" ng-init="moduleTable.init()">
        <table class="table table-hover">
            <thead>
                 <tr>
@@ -9,7 +9,7 @@
                  </tr>
            </thead>
            <tbody>
-                 <tr ng-repeat="module in moduleTable.items | filter : moduleTable.search" class="{{module.status =='complet'?'tr_complet':'tr_incomplet'}}" ng-class="{'tr_active' : moduleTable.selectedIndex == $index}" ng-mousedown="moduleTable.clicked($index,module._id,module.intitulee)" context-menu="moduleTable.menuOptions"  ng-click="moduleTable.clicked($index,module._id,module.intitulee)">
+                 <tr ng-repeat="module in moduleTable.items() | filter : moduleTable.search" class="{{module.status =='complet'?'tr_complet':'tr_incomplet'}}" ng-class="{'tr_active' : moduleTable.selectedIndex == $index}" ng-mousedown="moduleTable.clicked($index,module._id,module.intitulee)" context-menu="moduleTable.menuOptions"  ng-click="moduleTable.clicked($index,module._id,module.intitulee)">
                     <td>{{$index}}</td>
                     <td>{{module.intitulee}}</td>
                     <td>{{module.createdBy.nom}}</td>

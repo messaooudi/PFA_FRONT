@@ -170,12 +170,12 @@ html { height: 100%;}
 
 .hamburger {
   position: fixed;
-  top: 20px;  
+  top: 10px;  
   z-index: 999;
   display: block;
-  width: 32px;
+  width: 28px;
   height: 32px;
-  margin-left: 15px;
+  margin-left: 2px;
   background: transparent;
   border: none;
 }

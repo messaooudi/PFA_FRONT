@@ -206,26 +206,7 @@ profSchema.methods.addNotif = function(notif,notifType){
     this.notification[notifType].push(notif);
 }
 
- var matierSchema = mongoose.Schema(
-     {
-         intitulee : String,
-         niveau : String,
-         filiere : String,
-         semestre : String,
-         prof : {
-             type : mongoose.Schema.Types.ObjectId,
-             ref : 'prof'
-         },
-         notes : [
-             {
-                 nomEtudiant : String,
-                 note : {type : Number ,min:0 ,max:20}
-             }
-         ],
-        
-     }
- )
- 
+
  
  
  
@@ -233,7 +214,6 @@ profSchema.methods.addNotif = function(notif,notifType){
      eModules : mongoose.model('eModules',eModuleSchema),
      modules : mongoose.model('modules',moduleSchema),
      profs : mongoose.model('prof',profSchema),
-     matiers : mongoose.model('matier',matierSchema),
      eModuleNotif : mongoose.model('eModuleNotif',eModuleNotifSchema),
      moduleNotif : mongoose.model('moduleNotif',moduleNotifSchema)
  }

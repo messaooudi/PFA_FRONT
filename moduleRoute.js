@@ -370,6 +370,7 @@ router.post('/remplireModule',function(req,res){
                    module.setAtt('updatedBy',req.body.userId);                  
                    module.setAtt('status',req.body.status);
                    module.setAtt('eModules',req.body.eModules);
+                   module.setAtt('note_minimal',req.body.note_minimal);
                    module.save(function(err){
                        if(err) return callback({code : '002',message:"database problem!"});
                        callback(null,module.createdBy,module.coordonnateur);

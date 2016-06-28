@@ -1,19 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title></title>
+ <style>
 
-    <!-- Bootstrap -->
-    <link href="/CDN/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
-    <style>
-        body{
-            padding-top: 55px;
-        }
-        
         .tr_incomplet{
             background: none repeat scroll 0 0 #EFEBD6!important;
             color: black!important;
@@ -48,26 +34,16 @@
            border-bottom: 1px solid transparent!important;
         }
     </style>
-  </head>
-  <body ng-app="app" ng-controller="gestionFilierController">
   <div class="">  
     <!--Header-->
-    <div ng-include  src= "'header.html'"></div>  
+    <div ng-include  src= "'/eModule/header.html'"></div>  
     <!-- EModules TAble-->
-    <div ng-include  src= "'eModuleTable.html'"></div>
+    <div ng-include  src= "'/eModule/eModuleTable.html'"></div>
     <!--CRUD Modals-->
-    <div ng-include  src= "'creeModal.html'"></div>
-    <div ng-include  src= "'deleteModal.html'"></div>
-    <div ng-include  src= "'shareModal.html'"></div>
-    <div ng-include  src= "'editeModal.html'"></div>
+    <div ng-include  src= "'/eModule/creeModal.html'"></div>
+    <div ng-include  src= "'/eModule/deleteModal.html'"></div>
+    <div ng-include  src= "'/eModule/shareModal.html'"></div>
+    <div ng-include  src= "'/eModule/editeModal.html'"></div>
+    <div ng-include  src= "'/eModule/apercuModal.html'"></div>
     
   </div>
-    <script src="/CDN/jquery/jquery.min.js"></script>
-    <script src="/CDN/bootstrap/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
-    <script src="/CDN/angular/angular.min.js"></script>
-    <script src="/CDN/angular/angular-route.min.js"></script>
-    <script src="controller.js"></script>
-    <script src="contextMenu.js"></script>
-  </body>
-</html>

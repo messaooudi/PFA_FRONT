@@ -1,5 +1,5 @@
 <!-- modale share elemnt de module-->
-  <div ng-controller="shareModalController" id="shareModal" class="modal fade">
+  <div ng-controller="e_shareModalController" id="shareModal" class="modal fade">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -11,7 +11,7 @@
                 <div class="form-group">
                     <label for="sendToList">partager avec :</label>
                     <div class="form-inline">
-                        <select id="sendToList" class="selectpicker show-tick" multiple title="..." data-live-search="true" ng-options="prof.nom  for prof in profs"  ng-model="share.req.sendTo">                 
+                        <select id="sendToList" class="selectpicker show-tick" multiple title="..." data-live-search="true" ng-options="prof.nom  for prof in profs()"  ng-model="share.req.sendTo">                 
                         </select>
                     </div>
                     <span class="help-block">{{share.sharedWith}}</span>
