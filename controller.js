@@ -106,12 +106,12 @@ app.service('modulesList',function(moduleService,$rootScope,$filter){
               items = [];
               return  moduleService.load({searchQuery : {/*createdBy : $rootScope.userId ,*/'coordonnateur' :{ $in : [$rootScope.userId]}},
                                     responseFields : '',
-                                    populate : [{path : 'createdBy',select : 'nom'},{path : 'updatedBy',select : 'nom'},{path : 'coordonnateur',select : 'nom prenom'}]})
+                                    populate : [{path : 'createdBy',select : 'nom'},{path : 'updatedBy',select : 'nom'},{path : 'coordonnateur',select : 'nom prenom'},{path : 'eModules',select : 'intitulee'}]})
                       .then(function successCallback(response){
                                items = items.concat(response.data.data);
                               return moduleService.load({searchQuery : {createdBy : $rootScope.userId },
                                     responseFields : '',
-                                    populate : [{path : 'createdBy',select : 'nom'},{path : 'updatedBy',select : 'nom'},{path : 'coordonnateur',select : 'nom prenom'}]})
+                                    populate : [{path : 'createdBy',select : 'nom'},{path : 'updatedBy',select : 'nom'},{path : 'coordonnateur',select : 'nom prenom'},{path : 'eModules',select : 'intitulee'}]})
                                 .then(function successCallback(response){
                                         items = $filter('orderBy')(items.concat(response.data.data),'-lastUpdate');
                                         $rootScope.$broadcast('moduleListUpdate',{});
@@ -138,11 +138,26 @@ app.service('modulesList',function(moduleService,$rootScope,$filter){
         selectedItemIndex = index;
     }
     
+    var getPermision = function(moduleId){
+            for(var i=0 ; i<items.length ; i++){
+                if(items[i]._id == moduleId){
+                    if(items[i].createdBy._id == $rootScope.userId||items[i].coordonnateur._id == $rootScope.userId)
+                        return 'w';
+                    for(var j = 0 ; j<items[i].sendTo.length ; j++ ){
+                        if(items[i].sendTo[j]._id._id == $rootScope.userId){
+                            return items[i].sendTo[j].permision;
+                        }
+                    }
+                }
+            } 
+        }
+           
     return {
         load : load,
         getItems : getItems,
         getSelectedItemIndex : getSelectedItemIndex,
-        setSelectedItemIndex : setSelectedItemIndex
+        setSelectedItemIndex : setSelectedItemIndex,
+        getPermision : getPermision,
     }
     
 });
@@ -174,6 +189,7 @@ app.service('moduleNotifList',function($rootScope,moduleNotifService,profService
                          return moduleNotifService.getNotif({searchQuery : {_id : {$in : response.data.data[0].notification.moduleNotif}},populate : [{path : 'module',select : 'intitulee'},{path : 'eModule',select : 'intitulee'},{path : 'prof',select : 'nom'}]})
                                     .then(function successCallback(response){
                                        items = response.data.data;
+                                       if(items)
                                        for(var i=0 ; i< items.length ; i++){
                                            if(items[i].status == 'unseen')
                                                 count++;
@@ -295,11 +311,28 @@ app.service('eModulesList',function(eModuleService,$rootScope,$filter){
         selectedItemIndex = index;
     }
     
+
+    
+    var getPermision = function(eModuleId){
+            for(var i=0 ; i<items.length ; i++){
+                if(items[i]._id == eModuleId){
+                    if(items[i].createdBy._id == $rootScope.userId)
+                        return 'w';
+                    for(var j = 0 ; j<items[i].sendTo.length ; j++ ){
+                        if(items[i].sendTo[j]._id._id == $rootScope.userId){
+                            return items[i].sendTo[j].permision;
+                        }
+                    }
+                }
+            } 
+        }
+    
     return {
         load : load,
         getItems : getItems,
         getSelectedItemIndex : getSelectedItemIndex,
-        setSelectedItemIndex : setSelectedItemIndex
+        setSelectedItemIndex : setSelectedItemIndex,
+        getPermision : getPermision,
     }
     
 });
@@ -331,6 +364,7 @@ app.service('eModuleNotifList',function($rootScope,eModuleNotifService,profServi
                          return eModuleNotifService.getNotif({searchQuery : {_id : {$in : response.data.data[0].notification.eModuleNotif}},populate : [{path : 'eModule',select : 'intitulee'},{path : 'prof',select : 'nom'}]})
                                     .then(function successCallback(response){
                                        items = response.data.data;
+                                       if(items)
                                        for(var i=0 ; i< items.length ; i++){
                                            if(items[i].status == 'unseen')
                                                 count++;
@@ -423,8 +457,59 @@ app.controller('m_creeModalController',function($scope,$rootScope,moduleService,
         
 })
 
+app.controller('m_shareModalController',function($scope,$rootScope,moduleService,profService,modulesList,profsList){
+         $scope.profs = profsList.getItems;
+         $scope.share = {
+            req : {
+                userId : '',
+                moduleId : '',
+                cordId : '',
+            },
+            currentCord : '',
+            removeCurrentCord : function(){
+                $scope.share.currentCord = '';
+            }
+            ,
+            init : function(){
+               //$('.selectpicker').selectpicker('deselectAll');
+                $('.selectpicker').selectpicker('refresh');
+
+                $scope.share.req.userId = $rootScope.userId
+                $scope.share.req.cordId = '';
+                $scope.share.req.moduleId = modulesList.getItems()[modulesList.getSelectedItemIndex()]._id;
+                $scope.share.currentCord = modulesList.getItems()[modulesList.getSelectedItemIndex()].coordonnateur;
+            }
+            ,
+            submit : function(){
+                $scope.share.req.cordId = $scope.share.req.cordId._id;
+                moduleService.share($scope.share.req)
+                              .then(function successCallback(response){
+                                        if(response.data.code == '200'){
+                                            modulesList.load();
+                                            $('#shareModal').modal('hide');
+                                        }else {
+                                             $('#shareModal').modal('hide');
+                                        }
+                                    },
+                                    function errorCallback(response) {
+                                     }
+                             );
+                
+            },
+            annuler : function(){
+
+            }
+        }
+        
+        $scope.$on('init_shareModal',function(){
+            $scope.share.init();
+        })
+        
+})
+
 app.controller('m_headerController',function($scope,$rootScope,moduleNotifList,profService,moduleNotifService,modulesList){
         $scope.selectedItemIndex = modulesList.getSelectedItemIndex;
+        $scope.getPermision = modulesList.getPermision;
         $scope.header = {
             moduleNotif : moduleNotifList.getItems,
             newNotifCount : moduleNotifList.getCount,
@@ -433,17 +518,7 @@ app.controller('m_headerController',function($scope,$rootScope,moduleNotifList,p
             }
         }
         
-        $scope.getPermision = function(moduleId){
-            for(var i=0 ; i<modulesList.getItems().length ; i++){
-                if(modulesList.getItems()[i]._id == moduleId){
-                    for(var j = 0 ; j<modulesList.getItems()[i].sendTo.length ; j++ ){
-                        if(modulesList.getItems()[i].sendTo[j]._id._id == $rootScope.userId){
-                            return modulesList.getItems()[i].sendTo[j].permision;
-                        }
-                    }
-                }
-            } 
-        }
+
         
         $scope.apercu = function(){
             $rootScope.$broadcast('init_apercuModal',{});
@@ -476,8 +551,8 @@ app.controller('m_headerController',function($scope,$rootScope,moduleNotifList,p
 });
 
 app.controller('m_moduleTableController',function($scope,$rootScope,moduleService,profService,modulesList,profsList){
-        
-        
+        $scope.selectedItemIndex = modulesList.getSelectedItemIndex;
+        $scope.getPermision = modulesList.getPermision;
         $scope.moduleTable = {
             items : modulesList.getItems,
             search : '',
@@ -509,6 +584,23 @@ app.controller('m_moduleTableController',function($scope,$rootScope,moduleServic
                     $('#deleteModal').modal('show');
                 }]
             ],
+            menuOptionsw : [
+                ['Apercu', function($itemScope){
+                    $rootScope.$broadcast('init_apercuModal',{});
+                    $('#apercuModal').modal('show');
+                }],
+                null,
+                ['Modifier',function($itemScope){
+                    $rootScope.$broadcast('init_editeModal',{});
+                    $('#editeModal').modal('show');
+                }],
+               ],
+            menuOptionsr : [
+                ['Apercu', function($itemScope){
+                    $rootScope.$broadcast('init_apercuModal',{});
+                    $('#apercuModal').modal('show');
+                }],
+               ],
             clicked : function(index,id,_intitulee){
                 $scope.moduleTable.selectedIndex = index;
                 modulesList.setSelectedItemIndex(index);
@@ -554,6 +646,10 @@ app.controller('m_editeModalController',function($scope,$rootScope,moduleService
                 updatedBy : '',
                 eModules : [],
             },
+            currentEModules : [],
+            removeCurrentEM : function(index){
+                $scope.edite.currentEModules.splice(index,1);
+            },
             validation : {
                  taken : false,
                  WTaken : false
@@ -575,13 +671,16 @@ app.controller('m_editeModalController',function($scope,$rootScope,moduleService
               $scope.edite.req.departement = tmpModule.departement;
               $scope.edite.req.intitulee = tmpModule.intitulee;
               $scope.edite.req.status = tmpModule.status; 
-              $scope.edite.req.eModules = tmpModule.eModules;              
               $scope.edite.req.note_minimal = tmpModule.note_minimal;
+              $scope.edite.currentEModules = tmpModule.eModules;
               
+           
               $('.selectpicker').selectpicker()
               $('.selectpicker').selectpicker('refresh');
             },
            submit : function(){
+                 $scope.edite.req.eModules =  $scope.edite.req.eModules.concat($scope.edite.currentEModules);
+                 
                 if(!$scope.editeForm.$pristine){
                     $scope.edite.req.lastUpdate = new Date();
                 }
@@ -649,15 +748,20 @@ app.controller('e_shareModalController',function($scope,$rootScope,eModuleServic
                 sendTo : []
             },
             sharedWith : '',
+            currentSendTo : '',
+            removeCurrentST : function(index){
+                $scope.share.currentSendTo.splice(index,1);
+            },
             init : function(){
                 var eModule = eModulesList.getItems()[eModulesList.getSelectedItemIndex()];
-                //('.selectpicker').selectpicker('deselectAll');
+                //$('.selectpicker').selectpicker('deselectAll');
                 $('.selectpicker').selectpicker('refresh')
                 $scope.share.req.intitulee = eModule.intitulee;
                 $scope.share.req.userId = $rootScope.userId;
                 $scope.share.req.eModuleId = eModule._id;
                 $scope.share.req.sendTo = [];
-               
+                $scope.share.currentSendTo = eModule.sendTo;
+                
                 if(eModule.sendTo.length > 0)
                     $scope.share.sharedWith = 'Partgé avec :'
                 for(var i=0 ; i<eModule.sendTo.length ; i++){
@@ -667,10 +771,11 @@ app.controller('e_shareModalController',function($scope,$rootScope,eModuleServic
                 
             },
             submit : function(){
+                $scope.share.req.sendTo =  $scope.share.req.sendTo.concat($scope.share.currentSendTo);
                 eModuleService.share($scope.share.req)
                               .then(function successCallback(response){
                                         if(response.data.code == '200'){
-                                            $rootScope.$broadcast('updateTable',{});
+                                            eModulesList.load();
                                             $('#shareModal').modal('hide');
                                         }else{
                                         }
@@ -883,8 +988,9 @@ app.controller('e_deleteModalController',function($scope,$rootScope,eModuleServi
 });
 
 app.controller('e_eModuleTableController',function($scope,$rootScope,eModuleService,profService,eModulesList,profsList){
-        
-        
+        $scope.selectedItemIndex = eModulesList.getSelectedItemIndex;
+        $scope.getPermision = eModulesList.getPermision;
+      
         $scope.eModuleTable = {
             items : eModulesList.getItems,
             search : '',
@@ -916,6 +1022,23 @@ app.controller('e_eModuleTableController',function($scope,$rootScope,eModuleServ
                     $('#deleteModal').modal('show');
                 }]
             ],
+            menuOptionsw : [
+                ['Apercu', function($itemScope){
+                    $rootScope.$broadcast('init_apercuModal',{});
+                    $('#apercuModal').modal('show');
+                }],
+                null,
+                ['Modifier',function($itemScope){
+                    $rootScope.$broadcast('init_editeModal',{});
+                    $('#editeModal').modal('show');
+                }],
+               ],
+            menuOptionsr : [
+                ['Apercu', function($itemScope){
+                    $rootScope.$broadcast('init_apercuModal',{});
+                    $('#apercuModal').modal('show');
+                }],
+               ],
             clicked : function(index,id,_intitulee){
                 $scope.eModuleTable.selectedIndex = index;
                 eModulesList.setSelectedItemIndex(index);
@@ -929,6 +1052,7 @@ app.controller('e_eModuleTableController',function($scope,$rootScope,eModuleServ
 
 app.controller('e_headerController',function($scope,$rootScope,eModuleNotifList,profService,eModuleNotifService,eModulesList){
         $scope.selectedItemIndex = eModulesList.getSelectedItemIndex;
+        $scope.getPermision = eModulesList.getPermision;
         $scope.header = {
             eModuleNotif : eModuleNotifList.getItems,
             newNotifCount : eModuleNotifList.getCount,
@@ -937,18 +1061,8 @@ app.controller('e_headerController',function($scope,$rootScope,eModuleNotifList,
             }
         }
         
-        $scope.getPermision = function(eModuleId){
-            for(var i=0 ; i<eModulesList.getItems().length ; i++){
-                if(eModulesList.getItems()[i]._id == eModuleId){
-                    for(var j = 0 ; j<eModulesList.getItems()[i].sendTo.length ; j++ ){
-                        if(eModulesList.getItems()[i].sendTo[j]._id._id == $rootScope.userId){
-                            return eModulesList.getItems()[i].sendTo[j].permision;
-                        }
-                    }
-                }
-            }
+        
             
-        }
         
         
         $scope.apercu = function(){
@@ -986,9 +1100,9 @@ app.controller('gestionFilierController',function($scope,$rootScope,profService,
         $scope.modulesList = modulesList.getItems;
         $scope.eModulesList = eModulesList.getItems;
         
-        $rootScope.userId = '577272edfccf2fab49c2a513'; //577272e9fccf2fab49c2a512 577272edfccf2fab49c2a513
-        profsList.load().then(function(){
-            eModulesList.load().then(function(){
+        $rootScope.userId = '5773c78de27ca4e65fa8d92a'; // kotb : 5773c78de27ca4e65fa8d92a
+        profsList.load().then(function(){               // Oussama : 5773c798e27ca4e65fa8d92b
+            eModulesList.load().then(function(){        // yassir : 5773c7a9e27ca4e65fa8d92c
                 modulesList.load().then(function(){
                     eModuleNotifList.load().then(function(){
                         moduleNotifList.load().then(function(){

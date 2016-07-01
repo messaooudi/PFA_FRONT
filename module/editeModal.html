@@ -58,6 +58,15 @@
                     <div class="panel-body">
                         <select id="eModules" class="selectpicker show-tick" multiple  data-selected-text-format="count" title="..." data-live-search="true" ng-options="eModule.intitulee  for eModule in eModules()"  ng-model="edite.req.eModules">                 
                         </select>
+                        {{edite.req.eModules}}
+                        <h4 ng-repeat="currentEModule in edite.currentEModules">
+                            <span  class="label label-info">
+                                {{currentEModule.intitulee}}
+                                <button type="button" class="btn btn-info btn-xs" ng-click="edite.removeCurrentEM($index)">
+                                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                </button>
+                            </span> 
+                        </h4> 
                     </div>
                 </div>
                 <div class="panel panel-primary">

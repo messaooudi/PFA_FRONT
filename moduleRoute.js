@@ -103,6 +103,83 @@ router.post("/creeModule",function(req,res){
 });
 
 
+//{cordId : _id,eModules : []
+// userId : _id 
+// moduleId : _id}
+router.post("/shareModule",function(req,res){
+       console.log(req.connection.remoteAddress+" requested "+req.path);
+       console.log("request is : "+JSON.stringify(req.body,null));
+       res.setHeader('Content-Type', 'application/json');
+       //connection a la base de donnée
+       var db = mongoose.connection; 
+       mongoose.connect('mongodb://localhost:27017/test');
+       
+       db.on('error',function(){
+                 console.log(JSON.stringify({code : '001',message :"connection to database faild"}));
+                 res.send(JSON.stringify({code : '001',message :"connection to database faild"}));
+                 mongoose.connection.close();
+       });
+       
+       db.once('open',function(){
+           console.log("connection to database ");
+           console.log("response is : ");
+           async.waterfall([
+               function(callback){
+                   databaseModels.modules.findById(req.body.moduleId,function(err,doc){
+                       if(err) return callback({code : '002',message:"database problem!"})
+                       else if(doc.length==0) return callback({code : '003',message : "module not existe!!"});
+                       else{
+                           doc.setAtt('coordonnateur',req.body.cordId);
+                           doc.save(function(err){
+                               if(err) return callback(err)
+                               else callback(null);
+                           })
+                       }
+                   });  
+               },function(callback){
+                   var newNotif = new databaseModels.moduleNotif({
+                                                                intitulee :req.body.intitulee,
+                                                                module : req.body.moduleId,
+                                                                prof : req.body.userId,
+                                                                status : "unseen",
+                                                                typee : 'cord',
+                                                                date : new Date() 
+                                                             });
+                   newNotif.save(function(err){
+                       if(err) return callback({code : '008',message :"prob saving notif"});
+                       callback(null,newNotif._id)
+                   })
+                },
+                function(notifId,callback){
+                    databaseModels.profs.findById(req.body.cordId,function(err,prof){
+                        if(!prof){callback(null)}
+                            else if(err){callback(null)}
+                            else{
+                                 prof.addNotif(notifId,'moduleNotif');
+                                 prof.save(function(err){
+                                    callback(null)
+                                  })
+                            }
+                    });
+                }
+           ],
+           function(err,data){
+               if(err){ 
+                    res.send(JSON.stringify(err,null,'\t'));
+                    console.log(JSON.stringify(err,null,'\t'))
+               }
+               else{
+                    res.send(JSON.stringify({code : "200",message:"",data : data},null,'\t'));
+                    console.log(JSON.stringify({code : "200",message:"",data : data},null,'\t'))
+               }
+               console.log("connection to database closed"); 
+               mongoose.connection.close();
+           }
+           )
+       });
+});
+
+
 //{userId : id,searchQuery : {key : value},responseFields : "filed1 filed2 ..",populate : [{path : '',select:''}]}
 router.post("/getModule",function(req,res){
        console.log("++++++++++++++++++++++++"+worker.id)

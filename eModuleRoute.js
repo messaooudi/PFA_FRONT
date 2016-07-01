@@ -25,7 +25,7 @@ router.post("/creeEmodule",function(req,res){
        mongoose.connect('mongodb://localhost:27017/test');
        
        db.on('error',function(){
-                 console.log(JSON.stringify({code : '001',message :"connection to database faild"}));
+                 console.log(JSON.stringify({code : '001',message :"connection to database faild!"}));
                  res.send(JSON.stringify({code : '001',message :"connection to database faild"}));
                  mongoose.connection.close();
        });
@@ -135,7 +135,10 @@ router.post("/shareEmodule",function(req,res){
                    databaseModels.eModules.findById(req.body.eModuleId,function(err,eModule){
                        if(err) return callback({code : '002',message :"database problem!"});
                        if(!eModule) return callback({code : '004',message :"eModule doesn't exist!!"})
-                           eModule.appendSendTo(req.body.sendTo);
+                       
+                       
+                           eModule.setAtt('sendTo',req.body.sendTo);
+                           //eModule.appendSendTo(req.body.sendTo);
                            eModule.save(function(err){
                                if(err) return callback({code : '002',message :"database problem!"});
                                callback(null);

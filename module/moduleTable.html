@@ -9,10 +9,10 @@
                  </tr>
            </thead>
            <tbody>
-                 <tr ng-repeat="module in moduleTable.items() | filter : moduleTable.search" class="{{module.status =='complet'?'tr_complet':'tr_incomplet'}}" ng-class="{'tr_active' : moduleTable.selectedIndex == $index}" ng-mousedown="moduleTable.clicked($index,module._id,module.intitulee)" context-menu="moduleTable.menuOptions"  ng-click="moduleTable.clicked($index,module._id,module.intitulee)">
+                 <tr ng-repeat="module in moduleTable.items() | filter : moduleTable.search" class="{{module.status =='complet'?'tr_complet':'tr_incomplet'}}" ng-class="{'tr_active' : moduleTable.selectedIndex == $index}" ng-mousedown="moduleTable.clicked($index,module._id,module.intitulee)" context-menu="moduleTable.menuOptions{{modulesList()[selectedItemIndex()].createdBy._id == userId?'':getPermision(modulesList()[selectedItemIndex()]._id)}}"  ng-click="moduleTable.clicked($index,module._id,module.intitulee)">
                     <td>{{$index}}</td>
                     <td>{{module.intitulee}}</td>
-                    <td>{{module.createdBy.nom}}</td>
+                    <td>{{module.createdBy._id==userId?'Vous':module.createdBy.nom}}</td>
                     <td>{{module.lastUpdate}} <h6>{{module.updatedBy.nom}}</h6></td>
                  </tr>
             </tbody>
